@@ -10,6 +10,7 @@ This project evaluates models based on [https://cseptesting.org/grid-based-forec
 ## Project Structure
 
 Project/
+    
     data/ # Place to store downloaded data (not included)
 
     notebooks/ # Jupyter notebooks for evaluation
