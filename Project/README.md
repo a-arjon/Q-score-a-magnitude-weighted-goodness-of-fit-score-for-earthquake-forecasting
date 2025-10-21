@@ -32,8 +32,8 @@ Project/
 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/yourusername/my_project.git
-cd my_project
+git clone https://github.com/a-arjon/Q-score-a-magnitude-weighted-goodness-of-fit-score-for-earthquake-forecasting.git
+cd Project
 ```
 
 2. **Create and Activate a Virtual Environment**
