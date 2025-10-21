@@ -1,4 +1,4 @@
-# My Data Science Project
+# The $Q$-score: a magnitude-weighted goodness-of-fit score for earthquake forecasting
 
 This project evaluates models based on [https://cseptesting.org/grid-based-forecasts/]. It contains:
 - Python files with utility functions.
