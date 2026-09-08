@@ -2,7 +2,7 @@
 
 This project evaluates models based on [https://cseptesting.org/grid-based-forecasts/]. It contains:
 - Python files with utility functions.
-- Jupyter notebooks with model evaluation and cumulative plots.
+- Jupyter notebooks with model evaluation and cumulative plots. Q and L-Score Evaluation (updated).ipynb contains updated Q-Scores. Thank you to Rafał Wrona for finding the mistakes in the Q-score calculation code.
 - External datasets (to be downloaded separately)
 
 ---
