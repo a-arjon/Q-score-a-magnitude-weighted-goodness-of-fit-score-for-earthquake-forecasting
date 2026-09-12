@@ -139,73 +139,54 @@ def catalog_to_direct(catalog):
     
 ############################################################################################
 
-
 def q_score_calc(forecast_df: pd.DataFrame, events: list[dict], alpha: float) -> float:
+    """
+     fore_df: gridbased forecat as pd.DataFrame
+     events: list of observations
+     alpha: the proportion of observations used to calculate the Q-score (Top alpha% of magnitude events)
+    """
     if not events:
         raise ValueError("events must not be empty")
     if not 0 < alpha <= 1:
         raise ValueError("alpha must be in (0, 1]")
         
-    selected_count = math.ceil(len(events) * alpha)
-    selected_indices = sorted(
-        range(len(events)),
-        key=lambda index: float(events[index]["magnitude"]),
-        reverse=True,
-    )[:selected_count]
-    
-    top_events = [events[index] for index in selected_indices]
-    rates_at_events = []
-    
-    eps = 1e-4
-    
-    for event in top_events:
+    #Match observed events to get their integrated spatial-temporal rates
+    matched_rates = []
+    for event in events:
         lon = float(event["longitude"])
         lat = float(event["latitude"])
-        mag = float(event["magnitude"])
         
         mask = (
             (forecast_df["date"] == str(event["date"])) &
-            (forecast_df["lon_min"] <= lon) & (lon <= forecast_df["lon_max"]) &
-            (forecast_df["lat_min"] <= lat) & (lat <= forecast_df["lat_max"]) &
-            (forecast_df["mag_min"] >= mag + eps) & (mag <= forecast_df["mag_max"] + eps)
+            (forecast_df["lon_min"] <= lon) & (lon < forecast_df["lon_max"]) &
+            (forecast_df["lat_min"] <= lat) & (lat < forecast_df["lat_max"])
         )
         
-        matches = forecast_df.loc[mask, "rate"].values
-        
-        if len(matches) != 1:
-            sub_df = forecast_df[forecast_df["date"] == str(event["date"])]
-            spatial_mask = (
-                (sub_df["lon_min"] - eps <= lon) & (lon <= sub_df["lon_max"] + eps) &
-                (sub_df["lat_min"] - eps <= lat) & (lat <= sub_df["lat_max"] + eps) &
-                (sub_df["mag_min"] - eps >= mag) & (mag <= sub_df["mag_max"] + eps)
-            )
-            fallback_matches = sub_df.loc[spatial_mask, "rate"].values
-            if len(fallback_matches) >= 1:
-                # Force extract the absolute first item as a scalar float
-                val = float(fallback_matches[0])
-            else:
-                raise ValueError(f"event must match exactly one day/cell/magnitude-bin, got {len(matches)}: {event}")
-        else:
-            # Force extract the absolute first item as a scalar float
-            val = float(matches[0])
-                
-        rates_at_events.append(val)
-        
-    print(selected_count)
-    print(rates_at_events)
-    print(selected_indices)
-    
-    rates_series = pd.to_numeric(forecast_df["rate"], errors='coerce')
-    denominator = rates_series.mean()
-    
-    if denominator == 0 or pd.isna(denominator):
-        raise ZeroDivisionError("mean ground rate for forecast is zero or invalid")
-        
-    print(denominator)
-    numerator = sum(rates_at_events) / len(rates_at_events)
-    
-    return numerator / denominator
+        matches = forecast_df.loc[mask, "rate"]
+        if matches.empty:
+            raise ValueError(f"Event space-time coordinate did not match any grid cell: {event}")
+            
+        integrated_rate = float(matches.sum())
+        matched_rates.append(integrated_rate)
 
+    #Extract the top alpha rates based on the observed event magnitudes
+    event_rates = [(float(events[i]["magnitude"]), matched_rates[i]) for i in range(len(events))]
+    
+    #Sort descending by magnitude
+    event_rates.sort(key=lambda x: x[0], reverse=True)
+    
+    selected_count = math.ceil(len(events) * alpha)
+    top_pairs = event_rates[:selected_count]
+    top_alpha_rates = [pair[1] for pair in top_pairs]
+
+    #Calculate means using conditional intensity at observed earthquake locations
+    numerator = sum(top_alpha_rates) / len(top_alpha_rates)
+    denominator = sum(matched_rates) / len(matched_rates)
+    
+    if denominator == 0:
+        raise ZeroDivisionError("The mean of the matched conditional intensities is zero.")
+        
+    return numerator / denominator
 
 #######################################################################################
 
