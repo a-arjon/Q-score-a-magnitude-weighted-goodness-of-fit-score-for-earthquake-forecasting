@@ -12,6 +12,7 @@ This project evaluates models based on [https://cseptesting.org/grid-based-forec
 Project/
     
     data/ # Place to store downloaded data (not included)
+        Revised yearlyQandLScores.pdf # PDF with updated Q-scores throughout the years
 
     notebooks/ # Jupyter notebooks for evaluation
         Cumulative Plots.ipynb
