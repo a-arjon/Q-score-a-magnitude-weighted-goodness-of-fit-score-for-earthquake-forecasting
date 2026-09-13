@@ -15,7 +15,7 @@ Project/
 
     notebooks/ # Jupyter notebooks for evaluation
         Cumulative Plots.ipynb
-        Q and L-Score Evaluation.ipynb
+        Q and L-Score Evaluation (1).ipynb
         Q and L-Score Evaluation (updated).ipynb
 
     src/ # Python functions
